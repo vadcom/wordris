@@ -1,22 +1,36 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
 
+    Set<String> dictionary;
     record Letter(int row, int col , char letter) {}
-    int height=5;
-    int width=5;
+    int height=7;
+    int width=7;
     char [][] cup = new char[height][width];
 
     Random rnd = new Random();
 
     public Main() {
+        initCup();
+        loadDictionary();
+    }
+
+    private void initCup() {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j <width; j++) {
                 cup[i][j] = (char) (65+ rnd.nextInt(25));
             }
         }
+    }
+
+    private void loadDictionary(){
+        InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary.lst");
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+        dictionary=bufferedReader.lines().map(String::toUpperCase).collect(Collectors.toSet());
     }
 
     public void show() {
@@ -35,8 +49,11 @@ public class Main {
         int result=0;
         letters.add(new Letter(row,col,cup[row][col]));
         if (letters.size()>=min) {
-            System.out.println(getWord(letters));
-            result++;
+            String word = getWord(letters);
+            if (dictionary.contains(word)) {
+                System.out.println(word);
+                result++;
+            }
         }
         if (letters.size()>=max) {
             return result;

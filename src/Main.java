@@ -22,9 +22,13 @@ public class Main {
     private void initCup() {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j <width; j++) {
-                cup[i][j] = (char) (65+ rnd.nextInt(25));
+                cup[i][j] = getaChar();
             }
         }
+    }
+
+    private char getaChar() {
+        return (char) (65 + rnd.nextInt(25));
     }
 
     private void loadDictionary(){

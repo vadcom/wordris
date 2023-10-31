@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Main {
+public class WordField {
 
     Set<String> dictionary;
     record Letter(int row, int col , char letter) {}
@@ -14,7 +14,7 @@ public class Main {
 
     Random rnd = new Random();
 
-    public Main() {
+    public WordField() {
         initCup();
         loadDictionary();
     }
@@ -97,8 +97,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Main main = new Main();
-        main.show();
-        System.out.println("Total words "+main.variants());
+        WordField wordField = new WordField();
+        wordField.show();
+        System.out.println("Total words "+ wordField.variants());
     }
 }

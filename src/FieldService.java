@@ -1,20 +1,23 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WordField {
+public class FieldService {
 
     Set<String> dictionary;
-    record Letter(int row, int col , char letter) {}
+
+    public record Letter(int row, int col , char letter) {}
     int height=7;
     int width=7;
     char [][] cup = new char[height][width];
 
     Random rnd = new Random();
 
-    public WordField() {
+    public FieldService() {
         initCup();
         loadDictionary();
     }
@@ -46,15 +49,17 @@ public class WordField {
         }
     }
 
+    List<List<Letter>> words=new ArrayList<>();
     int min=3;
     int max=10;
     int [][] steps={{1,0},{-1,0},{0,1},{0,-1}};
-    private int checkLetter(int row, int col, List<Letter> letters) {
+    private int checkLetter(int row, int col, @NotNull List<Letter> letters) {
         int result=0;
         letters.add(new Letter(row,col,cup[row][col]));
         if (letters.size()>=min) {
             String word = getWord(letters);
             if (dictionary.contains(word)) {
+                words.add(letters);
                 System.out.println(word);
                 result++;
             }
@@ -86,19 +91,22 @@ public class WordField {
         return row>=0 & row<height & col>=0 & col<width;
     }
 
-    public int variants() {
-        int total=0;
+    public List<List<Letter>> variants(char[][] pole) {
+        cup=pole;
+        height=pole.length;
+        width=pole.length>0?pole[0].length:0;
+        words.clear();
         for (int i = 0; i < height; i++) {
             for (int j = 0; j <width; j++) {
-                total+=checkLetter(i, j, new ArrayList<>());
+                checkLetter(i, j, new ArrayList<>());
             }
         }
-        return total;
+        return new ArrayList<>(words);
     }
 
     public static void main(String[] args) {
-        WordField wordField = new WordField();
-        wordField.show();
-        System.out.println("Total words "+ wordField.variants());
+        FieldService fieldService = new FieldService();
+        fieldService.show();
+        //System.out.println("Total words "+ wordField.variants().size());
     }
 }

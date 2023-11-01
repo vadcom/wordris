@@ -3,7 +3,7 @@ import java.util.Random;
 
 public class Block {
 
-    enum BlockType{ IType,LType }
+    enum BlockType{ IType,LType,FULL }
     Random rnd = new Random();
 
     /**
@@ -17,14 +17,35 @@ public class Block {
     int by;
 
     Block(BlockType type) {
-        letters =new char[3][2];
-        for (char[] line : letters) {
-            Arrays.fill(line, ' ');
+        switch (type){
+
+            case IType -> {
+                letters =new char[3][1];
+                for (char[] line : letters) {
+                    Arrays.fill(line, ' ');
+                }
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+                letters[2][0]=getaChar();
+            }
+            case LType -> {
+                letters =new char[3][2];
+                for (char[] line : letters) {
+                    Arrays.fill(line, ' ');
+                }
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+                letters[2][0]=getaChar();
+                letters[0][1]=getaChar();
+            }
+            case FULL -> {
+                letters =new char[2][2];
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+                letters[0][1]=getaChar();
+                letters[1][1]=getaChar();
+            }
         }
-        letters[0][0]=getaChar();
-        letters[1][0]=getaChar();
-        letters[2][0]=getaChar();
-        letters[0][1]=getaChar();
     }
 
     public void setPosition(int x,int y) {
@@ -60,7 +81,7 @@ public class Block {
     }
 
     static public Block createBlock() {
-        return new Block(BlockType.LType);
+        return new Block(BlockType.FULL);
     }
 
     private char getaChar() {

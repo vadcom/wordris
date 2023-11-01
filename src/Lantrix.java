@@ -9,7 +9,10 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class Lantrix implements PoleService {
     Screen screen;
@@ -17,11 +20,12 @@ public class Lantrix implements PoleService {
 
     static final int HEIGHT=20;
     static final int WIDTH=10;
+    private FieldService fieldService;
 
     enum State{Start,NewBlock,Game,Drop,Check,Fell,End,Exit;}
 
     enum Event{onExit,createBlock,onGame,onEnd,onStepDown,onDropDown,shiftLeft,shiftRight}
-    Random rnd = new Random();
+
     Block block;
 
     int top = 1;
@@ -32,12 +36,9 @@ public class Lantrix implements PoleService {
     State state;
 
     char [][] cup;
-    /*
-        char[][] block;
-        int bx;
-        int by;
-    */
-    public Lantrix() throws IOException {
+
+    public Lantrix(FieldService fieldService) throws IOException {
+        this.fieldService = fieldService;
         Terminal terminal = new DefaultTerminalFactory()
                 .setInitialTerminalSize(new TerminalSize(80,25))
                 .setTerminalEmulatorTitle("Wordrix")
@@ -45,7 +46,7 @@ public class Lantrix implements PoleService {
         screen = new TerminalScreen(terminal);
         state = State.Start;
         bottom = top + HEIGHT;
-        right = left + WIDTH*2 + 1;
+        right = left + WIDTH*2 + 2;
     }
     public State onEvent(Event event){
         state = switch (event) {
@@ -94,16 +95,37 @@ public class Lantrix implements PoleService {
         }
     }
 
+    List<List<FieldService.Letter>> prize=new ArrayList<>();
 
     private State stepDown() {
         if (isPossiblePosition(block.getBx(),block.getBy()+1, block.getLetters())) {
-            block.setPosition(block.getBx(),block.getBy());
+            block.setPosition(block.getBx(),block.getBy()+1);
             return State.Game;
         } else {
             // move block to pole
             fillPole(block);
+            checkWords();
             return onEvent(Event.createBlock);
         }
+    }
+
+    private void checkWords() {
+        List<List<FieldService.Letter>> variants = fieldService.variants(cup);
+        if (variants.size()>0) {
+            // TODO: 11/1/2023 Select max
+            var word=variants.get(0);
+            prize.add(word);
+            dropLetters(word);
+        }
+    }
+
+    private void dropLetters(List<FieldService.Letter> word) {
+        word.forEach(letter -> {
+            for (int i = letter.row(); i > 1 ; i--) {
+                cup[i][letter.col()]=cup[i-1][letter.col()];
+                cup[i-1][letter.col()]=' ';
+            }
+        });
     }
 
     private State dropDown() {
@@ -113,11 +135,13 @@ public class Lantrix implements PoleService {
         }
         block.setPosition(block.getBx(),block.getBy()+dy-1);
         fillPole(block);
+        checkWords();
         return onEvent(Event.createBlock);
     }
 
     public void process() throws IOException, InterruptedException {
         screen.startScreen();
+        int counter=0;
         while (exit) {
             screen.clear();
             drawCup();
@@ -133,6 +157,10 @@ public class Lantrix implements PoleService {
                 }
                 case Game -> {
                     showBlock();
+                    if (counter>=20) {
+                        counter=0;
+                        onEvent(Event.onStepDown);
+                    }
                 }
                 case Exit -> {
                     exit=false;
@@ -149,6 +177,7 @@ public class Lantrix implements PoleService {
                 }
             }
             Thread.sleep(50);
+            counter++;
         }
         screen.stopScreen();
     }
@@ -177,7 +206,7 @@ public class Lantrix implements PoleService {
         for (int i = 0; i < cup.length; i++) {
             var line=cup[i];
             for (int j = 0; j < line.length; j++) {
-                TextCharacter textCharacter = TextCharacter.fromCharacter(line[j], TextColor.ANSI.GREEN, TextColor.ANSI.YELLOW, SGR.BOLD)[0];
+                TextCharacter textCharacter = TextCharacter.fromCharacter(line[j], TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD)[0];
                 screen.setCharacter(left+2+(j)*2, top+i, textCharacter);
             }
         }
@@ -192,16 +221,16 @@ public class Lantrix implements PoleService {
     private void drawCup() {
         TextCharacter border = TextCharacter.fromCharacter('#', TextColor.ANSI.BLUE, TextColor.ANSI.BLACK, SGR.BOLD)[0];
         for (int i = top; i < bottom; i++) {
-            screen.setCharacter(left+1, i, border);
+            screen.setCharacter(left, i, border);
             screen.setCharacter(right, i, border);
         }
-        for (int i = left+1; i <= right; i++) {
+        for (int i = left; i <= right; i++) {
             screen.setCharacter(i, bottom, border);
         }
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new Lantrix().process();
+        new Lantrix(new FieldService()).process();
     }
 
 }

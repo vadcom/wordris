@@ -11,8 +11,6 @@ import com.googlecode.lanterna.terminal.Terminal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.function.Consumer;
 
 public class Lantrix implements PoleService {
     Screen screen;
@@ -97,7 +95,7 @@ public class Lantrix implements PoleService {
 
     List<List<FieldService.Letter>> prize=new ArrayList<>();
 
-    private State stepDown() {
+    State stepDown() {
         if (isPossiblePosition(block.getBx(),block.getBy()+1, block.getLetters())) {
             block.setPosition(block.getBx(),block.getBy()+1);
             return State.Game;
@@ -109,7 +107,7 @@ public class Lantrix implements PoleService {
         }
     }
 
-    private void checkWords() {
+    void checkWords() {
         List<List<FieldService.Letter>> variants = fieldService.variants(cup);
         if (variants.size()>0) {
             // TODO: 11/1/2023 Select max
@@ -119,16 +117,16 @@ public class Lantrix implements PoleService {
         }
     }
 
-    private void dropLetters(List<FieldService.Letter> word) {
+    void dropLetters(List<FieldService.Letter> word) {
         word.forEach(letter -> {
-            for (int i = letter.row(); i > 1 ; i--) {
+            for (int i = letter.row(); i > 0 ; i--) {
                 cup[i][letter.col()]=cup[i-1][letter.col()];
                 cup[i-1][letter.col()]=' ';
             }
         });
     }
 
-    private State dropDown() {
+    State dropDown() {
         int dy=1;
         while (isPossiblePosition(block.getBx(),block.getBy()+dy, block.getLetters())) {
             dy++;
@@ -139,7 +137,7 @@ public class Lantrix implements PoleService {
         return onEvent(Event.createBlock);
     }
 
-    public void process() throws IOException, InterruptedException {
+    private void process() throws IOException, InterruptedException {
         screen.startScreen();
         int counter=0;
         while (exit) {
@@ -167,19 +165,27 @@ public class Lantrix implements PoleService {
                 }
             }
             screen.refresh();
-            KeyStroke key=screen.pollInput();
-            if (key!=null) {
-                switch (key.getKeyType()) {
-                    case ArrowLeft-> onEvent(Event.shiftLeft);
-                    case ArrowRight -> onEvent(Event.shiftRight);
-                    case Escape -> onEvent(Event.onExit);
-                    case Enter -> onEvent(Event.onDropDown);
-                }
-            }
+            processKey(screen.pollInput());
             Thread.sleep(50);
             counter++;
         }
         screen.stopScreen();
+    }
+
+    private void processKey(KeyStroke key) {
+        if (key !=null) {
+            switch (key.getKeyType()) {
+                case ArrowLeft-> onEvent(Event.shiftLeft);
+                case ArrowRight -> onEvent(Event.shiftRight);
+                case Escape -> onEvent(Event.onExit);
+                case Enter -> onEvent(Event.onDropDown);
+                case Character-> {
+                    if (key.getCharacter().equals(' ')) {
+                        onEvent(Event.onDropDown);
+                    }
+                }
+            }
+        }
     }
 
     private void initCup() {

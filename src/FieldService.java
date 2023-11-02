@@ -55,7 +55,9 @@ public class FieldService {
     int [][] steps={{1,0},{-1,0},{0,1},{0,-1}};
     private int checkLetter(int row, int col, @NotNull List<Letter> letters) {
         int result=0;
-        letters.add(new Letter(row,col,cup[row][col]));
+        char letter = cup[row][col];
+        if (letter==' ') return 0;
+        letters.add(new Letter(row,col, letter));
         if (letters.size()>=min) {
             String word = getWord(letters);
             if (dictionary.contains(word)) {

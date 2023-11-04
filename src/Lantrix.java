@@ -23,7 +23,7 @@ import static java.lang.Math.min;
 public class Lantrix implements PoleService {
     public static final int SHOW_TIME = 1000;
     Screen screen;
-    boolean exit = true;
+    boolean doGame = true;
 
     static final int HEIGHT = 20;
     static final int WIDTH = 10;
@@ -70,20 +70,24 @@ public class Lantrix implements PoleService {
     }
 
     public State onEvent(Event event) {
-        state = switch (event) {
-            case onExit -> State.Exit;
-            case createBlock -> State.NewBlock;
-            case onGame -> State.Game;
-            case onEnd -> State.EndGame;
-            case onStepDown -> stepDown();
-            case onDropDown -> dropDown();
-            case shiftLeft -> shift(-1);
-            case shiftRight -> shift(1);
-            case brightWord -> State.BrightWord;
-            case onDropLetter -> State.DropLetters;
-            case onClockwise -> rotateClockwise();
-            case onCounterClockwise -> rotateCounterClockwise();
-        };
+        if (state!=State.EndGame) {
+            state = switch (event) {
+                case onExit -> State.Exit;
+                case createBlock -> State.NewBlock;
+                case onGame -> State.Game;
+                case onEnd -> State.EndGame;
+                case onStepDown -> stepDown();
+                case onDropDown -> dropDown();
+                case shiftLeft -> shift(-1);
+                case shiftRight -> shift(1);
+                case brightWord -> State.BrightWord;
+                case onDropLetter -> State.DropLetters;
+                case onClockwise -> rotateClockwise();
+                case onCounterClockwise -> rotateCounterClockwise();
+            };
+        } else {
+            if (event==Event.onExit) state=State.Exit;
+        }
         return state;
     }
 
@@ -203,7 +207,7 @@ public class Lantrix implements PoleService {
         screen.startScreen();
         int delay = 50;
         int counter = 0;
-        while (exit) {
+        while (doGame) {
             screen.clear();
             drawCup();
             showPole();
@@ -224,12 +228,10 @@ public class Lantrix implements PoleService {
                     }
                 }
                 case Exit -> {
-                    exit = false;
+                    doGame = false;
                 }
                 case EndGame -> {
                     ShowEndGame();
-                    delay = SHOW_TIME;
-                    onEvent(Event.onExit);
                 }
                 case BrightWord -> {
                     brightWord(getLastWord());

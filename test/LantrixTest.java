@@ -49,9 +49,9 @@ class LantrixTest {
         cup[3][0]='4';
         cup[4][0]='5';
         var letter=new ArrayList<FieldService.Letter>();
-        letter.add(new FieldService.Letter(2,0,'*'));
-        letter.add(new FieldService.Letter(3,0,'*'));
         letter.add(new FieldService.Letter(4,0,'*'));
+        letter.add(new FieldService.Letter(3,0,'*'));
+        letter.add(new FieldService.Letter(2,0,'*'));
         lantrix.dropLetters(letter);
         show(cup);
         assertEquals(' ', cup[0][0]);

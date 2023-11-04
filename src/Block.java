@@ -1,10 +1,12 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Random;
 
 public class Block {
 
-    enum BlockType{ IType,LType,FULL }
-    Random rnd = new Random();
+    enum BlockType{ IType,LType, UType, TWO, ANGLE, FULL, CROSS }
+    static Random rnd = new Random();
 
     /**
      * Symbols
@@ -18,33 +20,60 @@ public class Block {
 
     Block(BlockType type) {
         switch (type){
-
             case IType -> {
-                letters =new char[3][1];
-                for (char[] line : letters) {
-                    Arrays.fill(line, ' ');
-                }
+                initBlock(3,1);
                 letters[0][0]=getaChar();
                 letters[1][0]=getaChar();
                 letters[2][0]=getaChar();
             }
             case LType -> {
-                letters =new char[3][2];
-                for (char[] line : letters) {
-                    Arrays.fill(line, ' ');
-                }
+                initBlock(3,2);
                 letters[0][0]=getaChar();
                 letters[1][0]=getaChar();
                 letters[2][0]=getaChar();
                 letters[0][1]=getaChar();
             }
             case FULL -> {
-                letters =new char[2][2];
+                initBlock(2,2);
                 letters[0][0]=getaChar();
                 letters[1][0]=getaChar();
                 letters[0][1]=getaChar();
                 letters[1][1]=getaChar();
             }
+            case UType -> {
+                initBlock(2,3);
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+                letters[1][1]=getaChar();
+                letters[0][2]=getaChar();
+                letters[1][2]=getaChar();
+            }
+            case TWO -> {
+                initBlock(2,1);
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+            }
+            case ANGLE -> {
+                initBlock(2,2);
+                letters[1][0]=getaChar();
+                letters[0][1]=getaChar();
+                letters[1][1]=getaChar();
+            }
+            case CROSS -> {
+                initBlock(3,3);
+                letters[0][1]=getaChar();
+                letters[1][0]=getaChar();
+                letters[1][1]=getaChar();
+                letters[1][2]=getaChar();
+                letters[2][1]=getaChar();
+            }
+        }
+    }
+
+    private void initBlock(int height, int width) {
+        letters = new char[height][width];
+        for (char[] line : letters) {
+            Arrays.fill(line, ' ');
         }
     }
 
@@ -81,9 +110,52 @@ public class Block {
     }
 
     static public Block createBlock() {
-        return new Block(BlockType.FULL);
+        int bound=BlockType.values().length;
+        return new Block(BlockType.values()[rnd.nextInt(bound)]);
     }
 
+
+    public char[][] getRotateClockwise(){
+        char[][] reversed = getReversed();
+        char[][] rotated=new char[getWidth()][getHeight()];
+        for (int i = 0; i < getHeight(); i++) {
+            for (int j = 0; j < getWidth(); j++) {
+                rotated[j][i]=reversed[i][j];
+            }
+        }
+        return rotated;
+    }
+
+    public char[][] getRotateCounterClockwise(){
+        char[][] reversed = getReversed();
+        int width = getWidth();
+        int height = getHeight();
+        char[][] rotated=new char[width][height];
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                rotated[j][i]=reversed[height-i-1][width-j-1];
+            }
+        }
+        return rotated;
+    }
+
+
+    @NotNull
+    private char[][] getReversed() {
+        char[][] reversed=new char[getHeight()][getWidth()];
+        for (int i = 0; i <getHeight(); i++) {
+            if (getWidth() >= 0) System.arraycopy(letters[i], 0, reversed[getHeight()-i-1], 0, getWidth());
+        }
+        return reversed;
+    }
+
+    public void rotateCounterClockwise(){
+        letters=getRotateCounterClockwise();
+    }
+
+    public void rotateClockwise(){
+        letters=getRotateClockwise();
+    }
     private char getaChar() {
         return (char) (65 + rnd.nextInt(25));
     }

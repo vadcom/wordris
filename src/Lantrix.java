@@ -7,8 +7,14 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.terminal.swing.AWTTerminalFontConfiguration;
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,11 +52,16 @@ public class Lantrix implements PoleService {
 
     char[][] cup;
 
-    public Lantrix(FieldService fieldService) throws IOException {
+    public Lantrix(FieldService fieldService) throws IOException, URISyntaxException, FontFormatException {
         this.fieldService = fieldService;
+        URL urlFont = getClass().getClassLoader().getResource("SpaceMono-Bold.ttf");
+        var fontBase = Font.createFont(Font.TRUETYPE_FONT, new File(urlFont.toURI()));
+        Font font = fontBase.deriveFont(16.0f);
+
         Terminal terminal = new DefaultTerminalFactory()
                 .setInitialTerminalSize(new TerminalSize(80, 25))
                 .setTerminalEmulatorTitle("Wordrix")
+                .setTerminalEmulatorFontConfiguration(new SwingTerminalFontConfiguration(true, AWTTerminalFontConfiguration.BoldMode.EVERYTHING,font))
                 .createTerminal();
         screen = new TerminalScreen(terminal);
         state = State.Start;
@@ -344,7 +355,7 @@ public class Lantrix implements PoleService {
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException, FontFormatException {
         new Lantrix(new FieldService()).process();
     }
 

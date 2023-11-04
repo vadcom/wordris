@@ -1,7 +1,9 @@
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +13,7 @@ class LantrixTest {
     static Lantrix lantrix;
 
     @BeforeAll
-    static void beforeAll() throws IOException {
+    static void beforeAll() throws IOException, URISyntaxException, FontFormatException {
         //FieldService fieldService=mock(FieldService.class);
         FieldService fieldService=new FieldService();
 

@@ -148,8 +148,7 @@ public class Lantrix implements PoleService {
         } else {
             // move block to pole
             fillPole(block);
-            checkWords();
-            return onEvent(Event.createBlock);
+            return checkWords() ? State.BrightWord : State.NewBlock;
         }
     }
 

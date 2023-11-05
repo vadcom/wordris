@@ -1,7 +1,4 @@
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextCharacter;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
@@ -67,20 +64,39 @@ public class Lantrix implements PoleService {
                 .createTerminal();
         terminal.setCursorVisible(false);
         screen = new TerminalScreen(terminal);
+        // screen.setCursorPosition(new TerminalPosition(1,1));
         state = State.Start;
         bottom = top + HEIGHT;
         right = left + WIDTH * 2 + 2;
     }
 
-    public State onEvent(Event event) {
-        if (state!=State.EndGame) {
-            state = switch (event) {
+    public void onEvent(Event event) {
+        System.out.println("State:" + state.toString()+ " Event " + event.toString());
+        switch (state){
+
+            case Start -> {
+                state = switch (event) {
+                    case createBlock -> State.NewBlock;
+                    default -> state;
+                };
+            }
+            case NewBlock -> state = switch (event) {
+                case onGame -> State.Game;
+                case onEnd -> State.EndGame;
+                default -> state;
+            };
+            case DropLetters -> state = switch (event) {
+                case brightWord -> State.BrightWord;
+                case createBlock -> State.NewBlock;
+                default -> state;
+            };
+            case Game -> state = switch (event) {
                 case onExit -> State.Exit;
                 case createBlock -> State.NewBlock;
                 case onGame -> State.Game;
                 case onEnd -> State.EndGame;
                 case onStepDown -> stepDown();
-                case onDropDown -> dropDown();
+                case onDropDown -> State.Drop;
                 case shiftLeft -> shift(-1);
                 case shiftRight -> shift(1);
                 case brightWord -> State.BrightWord;
@@ -88,10 +104,19 @@ public class Lantrix implements PoleService {
                 case onClockwise -> rotateClockwise();
                 case onCounterClockwise -> rotateCounterClockwise();
             };
-        } else {
-            if (event==Event.onExit) state=State.Exit;
+            case BrightWord-> state = switch (event) {
+                case brightWord -> State.BrightWord;
+                case onDropLetter -> State.DropLetters;
+                default -> state;
+            };
+            case Drop -> {
+                if (event==Event.onGame) state=State.Game;
+            }
+            case EndGame -> {
+                if (event==Event.onExit) state=State.Exit;
+            }
         }
-        return state;
+        System.out.println("New state:" + state.toString());
     }
 
     private State rotateClockwise() {
@@ -178,7 +203,6 @@ public class Lantrix implements PoleService {
         word.forEach(letter -> {
             cup[letter.row()][letter.col()] = '*';
         });
-
         for (int i = 1; i < getHeight(); i++) {
             for (int j = 0; j < getWidth(); j++) {
                 if (cup[i][j] == '*') {
@@ -189,19 +213,14 @@ public class Lantrix implements PoleService {
                 }
             }
         }
-
-        word.forEach(letter -> {
-        });
     }
 
-    State dropDown() {
+    void dropDown() {
         int dy = 1;
         while (isPossiblePosition(block.getBx(), block.getBy() + dy, block.getLetters())) {
             dy++;
         }
         block.setPosition(block.getBx(), block.getBy() + dy - 1);
-        fillPole(block);
-        return checkWords() ? State.BrightWord : State.NewBlock;
     }
 
 
@@ -228,6 +247,11 @@ public class Lantrix implements PoleService {
                         counter = 0;
                         onEvent(Event.onStepDown);
                     }
+                }
+                case Drop -> {
+                    dropDown();
+                    counter=DOWN_DELAY_MS/DELAY-5; // Small time for shift
+                    onEvent(Event.onGame);
                 }
                 case Exit -> {
                     doGame = false;
@@ -325,8 +349,10 @@ public class Lantrix implements PoleService {
         for (int i = 0; i < block.getLetters().length; i++) {
             var line = block.getLetters()[i];
             for (int j = 0; j < line.length; j++) {
-                TextCharacter textCharacter = TextCharacter.fromCharacter(line[j], TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD)[0];
-                screen.setCharacter(left + 2 + (block.getBx() + j) * 2, top + block.getBy() + i, textCharacter);
+                if (line[j]!=' ') {
+                    TextCharacter textCharacter = TextCharacter.fromCharacter(line[j], TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD)[0];
+                    screen.setCharacter(left + 2 + (block.getBx() + j) * 2, top + block.getBy() + i, textCharacter);
+                }
             }
         }
     }

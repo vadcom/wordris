@@ -2,6 +2,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.function.Supplier;
 
 public class Block {
 
@@ -18,7 +19,9 @@ public class Block {
     int bx;
     int by;
 
-    Block(BlockType type) {
+    final private Supplier<Character> characterSupplier;
+    Block(BlockType type,Supplier<Character> characterSupplier) {
+        this.characterSupplier=characterSupplier;
         switch (type){
             case IType -> {
                 initBlock(3,1);
@@ -109,9 +112,9 @@ public class Block {
         return true;
     }
 
-    static public Block createBlock() {
+    static public Block createBlock(Supplier<Character> characterSupplier) {
         int bound=BlockType.values().length;
-        return new Block(BlockType.values()[rnd.nextInt(bound)]);
+        return new Block(BlockType.values()[rnd.nextInt(bound)],characterSupplier);
     }
 
 
@@ -157,7 +160,8 @@ public class Block {
         letters=getRotateClockwise();
     }
     private char getaChar() {
-        return (char) (65 + rnd.nextInt(25));
+        // return (char) (65 + rnd.nextInt(25));
+        return characterSupplier.get();
     }
 
     public int getBx() {

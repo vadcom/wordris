@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class FieldService {
@@ -20,6 +21,31 @@ public class FieldService {
     public FieldService() {
         initCup();
         loadDictionary();
+        getStatistics();
+    }
+
+    private void getStatistics() {
+        Map<Character,Integer> map =  new HashMap<>();
+        dictionary.forEach(word->{
+            for (Character c:word.toCharArray()) {
+                if (c>='A' && c<='Z' ) {
+                    int count = map.getOrDefault(c, 0);
+                    map.put(c, count + 1);
+                }
+            }
+        });
+        sum.set(0);
+        treeMap.clear();
+        map.forEach((character, integer) -> {
+            int i = sum.addAndGet(integer);
+            treeMap.put(i,character);
+        });
+        treeMap.forEach((key, value) -> System.out.println(value + " : " + key));
+    }
+
+    public Character getNormalizedLetter() {
+        int key = rnd.nextInt(sum.get());
+        return treeMap.ceilingEntry(key).getValue();
     }
 
     private void initCup() {
@@ -33,6 +59,10 @@ public class FieldService {
     private char getaChar() {
         return (char) (65 + rnd.nextInt(25));
     }
+
+    TreeMap<Integer,Character> treeMap=new TreeMap<>();
+    AtomicInteger sum= new AtomicInteger();
+
 
     private void loadDictionary(){
         InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary.lst");

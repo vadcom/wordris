@@ -22,6 +22,9 @@ import static java.lang.Math.min;
 
 public class Lantrix implements PoleService {
     public static final int SHOW_TIME = 1000;
+
+    public static final int DOWN_DELAY_MS=2000;
+    private static final int DELAY = 50;
     Screen screen;
     boolean doGame = true;
 
@@ -57,12 +60,12 @@ public class Lantrix implements PoleService {
         URL urlFont = getClass().getClassLoader().getResource("SpaceMono-Bold.ttf");
         var fontBase = Font.createFont(Font.TRUETYPE_FONT, new File(urlFont.toURI()));
         Font font = fontBase.deriveFont(16.0f);
-
         Terminal terminal = new DefaultTerminalFactory()
                 .setInitialTerminalSize(new TerminalSize(80, 25))
                 .setTerminalEmulatorTitle("Wordrix")
-                .setTerminalEmulatorFontConfiguration(new SwingTerminalFontConfiguration(true, AWTTerminalFontConfiguration.BoldMode.EVERYTHING,font))
+                .setTerminalEmulatorFontConfiguration(new SwingTerminalFontConfiguration(true, AWTTerminalFontConfiguration.BoldMode.EVERYTHING, font))
                 .createTerminal();
+        terminal.setCursorVisible(false);
         screen = new TerminalScreen(terminal);
         state = State.Start;
         bottom = top + HEIGHT;
@@ -221,7 +224,7 @@ public class Lantrix implements PoleService {
                 }
                 case Game -> {
                     showBlock();
-                    if (counter >= 20) {
+                    if (counter >= DOWN_DELAY_MS/DELAY) {
                         counter = 0;
                         onEvent(Event.onStepDown);
                     }
@@ -246,7 +249,7 @@ public class Lantrix implements PoleService {
             screen.refresh();
             processKey(screen.pollInput());
             Thread.sleep(delay);
-            delay = 50;
+            delay = DELAY;
             counter++;
         }
         screen.stopScreen();
@@ -340,7 +343,7 @@ public class Lantrix implements PoleService {
     }
 
     private boolean addBlock() {
-        block = Block.createBlock();
+        block = Block.createBlock(fieldService::getNormalizedLetter);
         block.setPosition(WIDTH / 2 - block.getWidth() / 2, 0);
         return isPossiblePosition(block.getBx(), block.getBy(), block.getLetters());
     }

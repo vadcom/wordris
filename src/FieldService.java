@@ -28,10 +28,8 @@ public class FieldService {
         Map<Character,Integer> map =  new HashMap<>();
         dictionary.forEach(word->{
             for (Character c:word.toCharArray()) {
-                if (c>='A' && c<='Z' ) {
                     int count = map.getOrDefault(c, 0);
                     map.put(c, count + 1);
-                }
             }
         });
         sum.set(0);
@@ -65,7 +63,7 @@ public class FieldService {
 
 
     private void loadDictionary(){
-        InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary.lst");
+        InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary_ru.lst");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         dictionary=bufferedReader.lines().map(String::toUpperCase).collect(Collectors.toSet());
     }

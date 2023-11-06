@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class FieldService {
+public class LangService {
 
     Set<String> dictionary;
 
@@ -18,9 +18,8 @@ public class FieldService {
 
     Random rnd = new Random();
 
-    public FieldService() {
-        initCup();
-        loadDictionary();
+    public LangService(Lantrix.Lang lang) {
+        loadDictionary(lang);
         getStatistics();
     }
 
@@ -62,8 +61,12 @@ public class FieldService {
     AtomicInteger sum= new AtomicInteger();
 
 
-    private void loadDictionary(){
-        InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary_ru.lst");
+    private void loadDictionary(Lantrix.Lang lang){
+        var dict=switch (lang){
+            case ENG -> "dictionary_en.lst";
+            case RUS -> "dictionary_ru.lst";
+        };
+        InputStream is = getClass().getClassLoader().getResourceAsStream(dict);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         dictionary=bufferedReader.lines().map(String::toUpperCase).collect(Collectors.toSet());
     }
@@ -78,7 +81,9 @@ public class FieldService {
     }
 
     List<List<Letter>> words=new ArrayList<>();
+
     int min=3;
+
     int max=10;
     int [][] steps={{1,0},{-1,0},{0,1},{0,-1}};
     private int checkLetter(int row, int col, @NotNull List<Letter> letters) {
@@ -107,11 +112,14 @@ public class FieldService {
         }
         return result;
     }
-
     private String getWord(List<Letter> letters) {
         StringBuilder builder=new StringBuilder();
         letters.forEach(obj -> builder.append(obj.letter()));
         return builder.toString();
+    }
+
+    public void setMin(int min) {
+        this.min = min;
     }
 
     private boolean checkOverlap(final int row,final int col,List<Letter> letters) {
@@ -134,9 +142,4 @@ public class FieldService {
         return new ArrayList<>(words);
     }
 
-    public static void main(String[] args) {
-        FieldService fieldService = new FieldService();
-        fieldService.show();
-        //System.out.println("Total words "+ wordField.variants().size());
-    }
 }

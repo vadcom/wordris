@@ -14,10 +14,8 @@ class LantrixTest {
 
     @BeforeAll
     static void beforeAll() throws IOException, URISyntaxException, FontFormatException {
-        //FieldService fieldService=mock(FieldService.class);
-        FieldService fieldService=new FieldService();
-
-        lantrix=new Lantrix(fieldService);
+        LangService langService =new LangService(Lantrix.Lang.ENG);
+        lantrix=new Lantrix(langService, Lantrix.Lang.ENG);
     }
 
     @org.junit.jupiter.api.Test
@@ -29,9 +27,9 @@ class LantrixTest {
         cup[2][0]='3';
         cup[3][0]='4';
         cup[4][0]='5';
-        var letter=new ArrayList<FieldService.Letter>();
-        letter.add(new FieldService.Letter(2,0,'*'));
-        letter.add(new FieldService.Letter(3,0,'*'));
+        var letter=new ArrayList<LangService.Letter>();
+        letter.add(new LangService.Letter(2,0,'*'));
+        letter.add(new LangService.Letter(3,0,'*'));
         lantrix.dropLetters(letter);
         show(cup);
         assertEquals(' ', cup[0][0]);
@@ -50,10 +48,10 @@ class LantrixTest {
         cup[2][0]='3';
         cup[3][0]='4';
         cup[4][0]='5';
-        var letter=new ArrayList<FieldService.Letter>();
-        letter.add(new FieldService.Letter(4,0,'*'));
-        letter.add(new FieldService.Letter(3,0,'*'));
-        letter.add(new FieldService.Letter(2,0,'*'));
+        var letter=new ArrayList<LangService.Letter>();
+        letter.add(new LangService.Letter(4,0,'*'));
+        letter.add(new LangService.Letter(3,0,'*'));
+        letter.add(new LangService.Letter(2,0,'*'));
         lantrix.dropLetters(letter);
         show(cup);
         assertEquals(' ', cup[0][0]);

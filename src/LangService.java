@@ -16,19 +16,26 @@ public class LangService {
     int width=7;
     char [][] cup = new char[height][width];
 
+    record LetterFilter(char letterFrom, char letterTo){};
+
     Random rnd = new Random();
 
     public LangService(Lantrix.Lang lang) {
         loadDictionary(lang);
-        getStatistics();
+        getStatistics(lang);
     }
 
-    private void getStatistics() {
+    private void getStatistics(Lantrix.Lang lang) {
+        var filter =getFilter(lang);
+        char letterFrom = filter.letterFrom;
+        char letterTo = filter.letterTo;
         Map<Character,Integer> map =  new HashMap<>();
         dictionary.forEach(word->{
             for (Character c:word.toCharArray()) {
+                if (c>= letterFrom && c<= letterTo) {
                     int count = map.getOrDefault(c, 0);
                     map.put(c, count + 1);
+                }
             }
         });
         sum.set(0);
@@ -62,13 +69,25 @@ public class LangService {
 
 
     private void loadDictionary(Lantrix.Lang lang){
-        var dict=switch (lang){
-            case ENG -> "dictionary_en.lst";
-            case RUS -> "dictionary_ru.lst";
-        };
+        String dict = getDictionaryFileName(lang);
         InputStream is = getClass().getClassLoader().getResourceAsStream(dict);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         dictionary=bufferedReader.lines().map(String::toUpperCase).collect(Collectors.toSet());
+    }
+
+    @NotNull
+    private String getDictionaryFileName(Lantrix.Lang lang) {
+        return switch (lang){
+            case ENG -> "dictionary_en.lst";
+            case RUS -> "dictionary_ru.lst";
+        };
+    }
+
+    private LetterFilter getFilter(Lantrix.Lang lang){
+        return switch ((lang)){
+            case ENG -> new LetterFilter('A','Z');
+            case RUS -> new LetterFilter('А','Я');
+        };
     }
 
     public void show() {
@@ -86,12 +105,12 @@ public class LangService {
 
     int max=10;
     int [][] steps={{1,0},{-1,0},{0,1},{0,-1}};
-    private int checkLetter(int row, int col, @NotNull List<Letter> letters) {
+    private int checkLetter(int row, int col, @NotNull List<Letter> letters, int minLetters) {
         int result=0;
         char letter = cup[row][col];
         if (letter==' ') return 0;
         letters.add(new Letter(row,col, letter));
-        if (letters.size()>=min) {
+        if (letters.size()>=minLetters) {
             String word = getWord(letters);
             if (dictionary.contains(word)) {
                 words.add(letters);
@@ -107,7 +126,7 @@ public class LangService {
             int col1 = col + step[1];
             if (checkStep(row1, col1) &
                     checkOverlap(row1, col1,letters)) {
-                result+=checkLetter(row1,col1,new ArrayList<>(letters));
+                result+=checkLetter(row1,col1,new ArrayList<>(letters),minLetters);
             }
         }
         return result;
@@ -129,14 +148,14 @@ public class LangService {
         return row>=0 & row<height & col>=0 & col<width;
     }
 
-    public List<List<Letter>> variants(char[][] pole) {
+    public List<List<Letter>> variants(char[][] pole, int minLetters) {
         cup=pole;
         height=pole.length;
         width=pole.length>0?pole[0].length:0;
         words.clear();
         for (int i = 0; i < height; i++) {
             for (int j = 0; j <width; j++) {
-                checkLetter(i, j, new ArrayList<>());
+                checkLetter(i, j, new ArrayList<>(),minLetters);
             }
         }
         return new ArrayList<>(words);

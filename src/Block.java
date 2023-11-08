@@ -112,9 +112,9 @@ public class Block {
         return true;
     }
 
-    static public Block createBlock(Supplier<Character> characterSupplier) {
-        int bound=BlockType.values().length;
-        return new Block(BlockType.values()[rnd.nextInt(bound)],characterSupplier);
+    static public Block createBlock(Supplier<Character> characterSupplier, BlockType[] blockSet) {
+        int bound=blockSet.length;
+        return new Block(blockSet[(rnd.nextInt(bound))],characterSupplier);
     }
 
 

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.prefs.BackingStoreException;
 
 /**
  * Created by vadcom on 9/19/15.
@@ -49,20 +50,14 @@ public class Wordrix {
         return new TerminalScreen(terminal);
     }
 
-    public void start() throws IOException, URISyntaxException, FontFormatException {
+    public void start() throws IOException, URISyntaxException, FontFormatException, BackingStoreException {
         var screen = createScreen(lang);
-        var langService = new LangService(lang);
-        /*
-        var lantrix = new Lantrix(screen, langService, lang, minLetters, blockSet);
-        lantrix.process();
-
-        */
         new Menu(screen, lang, minLetters, blockSet).start();
     }
 
 
 
-    public static void main(String[] args) throws IOException, URISyntaxException, FontFormatException, InterruptedException {
+    public static void main(String[] args) throws IOException, URISyntaxException, FontFormatException, BackingStoreException {
         Lantrix.Lang lang = Lantrix.Lang.ENG;
         if (args.length > 0) {
             lang = switch (args[0].toUpperCase()) {

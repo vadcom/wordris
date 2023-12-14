@@ -15,7 +15,7 @@ class LantrixTest {
     @BeforeAll
     static void beforeAll() throws IOException, URISyntaxException, FontFormatException {
         LangService langService = new LangService(Lantrix.Lang.ENG);
-        lantrix = new Lantrix(null,langService, Lantrix.Lang.ENG, 3, Lantrix.BlockSet.EXT);
+        lantrix = new Lantrix(null,langService, 3, Lantrix.BlockSet.EXT);
     }
 
     @Test

@@ -2,7 +2,6 @@ import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 
 import java.awt.*;
@@ -48,16 +47,16 @@ public class Lantrix implements PoleService {
 
     int top = 1;
 
-    int bottom = 10;
+    int bottom;
     int left = 10;
-    int right = 20;
+    int right;
     State state;
 
     Long score;
 
     char[][] cup;
 
-    public Lantrix(Screen screen, LangService langService, Lang lang, int minLetters, BlockSet blockSet) throws IOException, URISyntaxException, FontFormatException {
+    public Lantrix(Screen screen, LangService langService, int minLetters, BlockSet blockSet) throws IOException, URISyntaxException, FontFormatException {
         this.screen = screen;
         this.langService = langService;
         this.minLetters = minLetters;
@@ -81,12 +80,10 @@ public class Lantrix implements PoleService {
         System.out.println("State:" + state.toString() + " Event " + event.toString());
         switch (state) {
 
-            case Start -> {
-                state = switch (event) {
-                    case createBlock -> State.NewBlock;
-                    default -> state;
-                };
-            }
+            case Start -> state = switch (event) {
+                case createBlock -> State.NewBlock;
+                default -> state;
+            };
             case NewBlock -> state = switch (event) {
                 case onGame -> State.Game;
                 case onEnd -> State.EndGame;
@@ -121,31 +118,7 @@ public class Lantrix implements PoleService {
                 if (event == Event.onGame) state = State.Game;
             }
             case EndGame -> {
-                if (event == Event.onExit) state = State.Exit;
-            }
-        }
-    }
-
-    private String getName() {
-        StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
-            KeyStroke keyStroke = null;
-            try {
-                keyStroke = screen.pollInput();
-            } catch (IOException e) {
-                return "";
-            }
-            if (keyStroke != null) {
-                if (keyStroke.getKeyType() == KeyType.Enter) {
-                    return stringBuilder.toString();
-                }
-                if (keyStroke.getKeyType() == KeyType.Escape) {
-                    return "";
-                }
-                if (keyStroke.getKeyType() == KeyType.Character) {
-                    stringBuilder.append(keyStroke.getCharacter());
-                    screen.setCharacter(left + 1 + stringBuilder.length(), top + 5, TextCharacter.fromCharacter(keyStroke.getCharacter(), TextColor.ANSI.YELLOW, TextColor.ANSI.BLUE, SGR.BOLD)[0]);
-                }
+                if (event == Event.onExit || event==Event.onDropDown) state = State.Exit;
             }
         }
     }
@@ -231,9 +204,7 @@ public class Lantrix implements PoleService {
     }
 
     void dropLetters(List<LangService.Letter> word) {
-        word.forEach(letter -> {
-            cup[letter.row()][letter.col()] = '*';
-        });
+        word.forEach(letter -> cup[letter.row()][letter.col()] = '*');
         for (int i = 1; i < getHeight(); i++) {
             for (int j = 0; j < getWidth(); j++) {
                 if (cup[i][j] == '*') {
@@ -281,7 +252,7 @@ public class Lantrix implements PoleService {
                 }
                 case Drop -> {
                     dropDown();
-                    counter = DOWN_DELAY_MS / DELAY - 5; // Small time for shift
+                    counter = DOWN_DELAY_MS / DELAY - 5; // Small-time for shift
                     onEvent(Event.onGame);
                 }
                 case Exit -> doGame = false;
@@ -318,10 +289,6 @@ public class Lantrix implements PoleService {
         for (TextCharacter textCharacter : TextCharacter.fromString(text, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
             screen.setCharacter(left + (WIDTH * 2 - text.length()) / 2 + 2 + j++, top + 5, textCharacter);
         }
-    }
-
-    String getDuplicate(char c, int count) {
-        return String.valueOf(c).repeat(Math.max(0, count));
     }
 
 

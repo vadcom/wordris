@@ -4,6 +4,8 @@ leave: exit
 items:
   - text: Start
     event: start
+  - text: Change player name
+    event: changeName
   - text: Language
     type: option
     event: language

@@ -3,6 +3,8 @@ import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.screen.Screen;
+import link.sigma5.dreamscore.client.Score;
+import link.sigma5.dreamscore.client.ScoreClient;
 import link.sigma5.menu.DumbMenu;
 import link.sigma5.menu.MenuEvent;
 import link.sigma5.menu.MenuItemView;
@@ -12,6 +14,7 @@ import link.sigma5.menu.MenuAction;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class Menu implements MenuListener {
     private final DumbMenu menu = new DumbMenu("menu.yaml", this);
@@ -78,7 +81,12 @@ public class Menu implements MenuListener {
         switch (menuEvent.event()) {
             case "start" -> {
                 try {
-                    new Lantrix(screen, new LangService(lang), lang, minLetters, blockSet).process();
+                    Long score = new Lantrix(screen, new LangService(lang), lang, minLetters, blockSet).process();
+                    if (score !=0 ){
+                        var scoreClient = new ScoreClient("wordrix", getSectionId());
+                        List<Score> scores = scoreClient.pushScore("Vadim", score);
+                        showScore(scores);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (URISyntaxException e) {
@@ -105,6 +113,41 @@ public class Menu implements MenuListener {
                     default -> Lantrix.BlockSet.BASE;
                 };
             }
+            case "scores" -> {
+                try {
+                    var scoreClient = new ScoreClient("wordrix", getSectionId());
+                    List<Score> scores = scoreClient.pullScore(0, 10);
+                    showScore(scores);
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
+
+    private String getSectionId() {
+        return lang.toString() + "_" + minLetters + "_" + blockSet.toString();
+    }
+
+    private void showScore(List<Score> scores) throws IOException {
+        screen.clear();
+        String caption = "-=* TOP SCORE *=-";
+        int columns = screen.getTerminalSize().getColumns();
+        drawString(caption, (columns - caption.length()) / 2 , 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
+        int line = 6;
+        int x = (columns - 40) /2;
+        for (Score score : scores) {
+            String text = score.getPosition() + "."+" ".repeat(3-score.getPosition().toString().length())
+                    + score.getName() + ".".repeat(30 - score.getName().length()+score.getScore().toString().length())
+                    + score.getScore();
+            boolean selected = score.getSelected()!=null?score.getSelected():false;
+            drawString(text, x, line++, TextColor.ANSI.GREEN, selected ?TextColor.ANSI.BLUE:TextColor.ANSI.BLACK, SGR.BOLD);
+        }
+        screen.refresh();
+        screen.readInput();
+    }
+
 }

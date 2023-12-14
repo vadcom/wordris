@@ -4,8 +4,6 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
-import link.sigma5.dreamscore.client.Score;
-import link.sigma5.dreamscore.client.ScoreClient;
 
 import java.awt.*;
 import java.io.IOException;
@@ -24,8 +22,6 @@ public class Lantrix implements PoleService {
 
     Screen screen;
     boolean doGame = true;
-    private String userName = "";
-
     public enum Lang {ENG, RUS}
 
     public enum BlockSet {BASE, EXT}
@@ -36,9 +32,7 @@ public class Lantrix implements PoleService {
     private final int minLetters;
     private final BlockSet blockSet;
 
-    List<Score> scores;
-
-    enum State {Start, NewBlock, Game, Drop, Check, Fell, EndGame, Exit, GetName, ShowScore, BrightWord, DropLetters}
+    enum State {Start, NewBlock, Game, Drop, Check, Fell, EndGame, Exit, BrightWord, DropLetters}
 
     enum Event {
         onExit, createBlock, onGame, onEnd, onStepDown, onDropDown,
@@ -47,9 +41,7 @@ public class Lantrix implements PoleService {
         brightWord,
         onDropLetter,
         onClockwise,
-        onCounterClockwise,
-        pushScore,
-        onGetName
+        onCounterClockwise
     }
 
     Block block;
@@ -65,8 +57,6 @@ public class Lantrix implements PoleService {
 
     char[][] cup;
 
-    ScoreClient scoreClient;
-
     public Lantrix(Screen screen, LangService langService, Lang lang, int minLetters, BlockSet blockSet) throws IOException, URISyntaxException, FontFormatException {
         this.screen = screen;
         this.langService = langService;
@@ -75,7 +65,6 @@ public class Lantrix implements PoleService {
         state = State.Start;
         bottom = top + HEIGHT;
         right = left + WIDTH * 2 + 2;
-        scoreClient = new ScoreClient("wordrix", lang.toString() + "_" + minLetters + "_" + blockSet.toString());
     }
 
     Block.BlockType[] base = {Block.BlockType.IType, Block.BlockType.LType, Block.BlockType.LTypeMirror, Block.BlockType.TWO, Block.BlockType.ANGLE};
@@ -132,24 +121,9 @@ public class Lantrix implements PoleService {
                 if (event == Event.onGame) state = State.Game;
             }
             case EndGame -> {
-                if (event == Event.onGetName) {
-                    userName = getName();
-                }
-                if (event == Event.pushScore) {
-                    try {
-                        scores = scoreClient.pushScore(userName, score);
-                        state = State.ShowScore;
-                    } catch (IOException | InterruptedException e) {
-                        state = State.Exit;
-                    }
-                }
-                if (event == Event.onExit) state = State.Exit;
-            }
-            case ShowScore -> {
                 if (event == Event.onExit) state = State.Exit;
             }
         }
-        System.out.println("New state:" + state.toString());
     }
 
     private String getName() {
@@ -281,8 +255,7 @@ public class Lantrix implements PoleService {
     }
 
 
-    public void process() throws IOException, InterruptedException {
-        screen.startScreen();
+    public Long process() throws IOException, InterruptedException {
         int delay = 50;
         int counter = 0;
         while (doGame) {
@@ -311,18 +284,8 @@ public class Lantrix implements PoleService {
                     counter = DOWN_DELAY_MS / DELAY - 5; // Small time for shift
                     onEvent(Event.onGame);
                 }
-                case Exit -> {
-                    doGame = false;
-                }
-                case EndGame -> {
-                    showEndGame();
-                    if (userName.isEmpty()) {
-                        onEvent(Event.onGetName);
-                    } else {
-                        onEvent(Event.pushScore);
-                    }
-                }
-                case ShowScore -> showScore();
+                case Exit -> doGame = false;
+                case EndGame -> showEndGame();
                 case BrightWord -> {
                     score += factorial(getLastWord().size());
                     brightWord(getLastWord());
@@ -341,7 +304,7 @@ public class Lantrix implements PoleService {
             delay = DELAY;
             counter++;
         }
-        screen.stopScreen();
+        return score;
     }
 
     public long factorial(int n) {
@@ -354,23 +317,6 @@ public class Lantrix implements PoleService {
         String text = "-=* END GAME *=-";
         for (TextCharacter textCharacter : TextCharacter.fromString(text, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
             screen.setCharacter(left + (WIDTH * 2 - text.length()) / 2 + 2 + j++, top + 5, textCharacter);
-        }
-    }
-
-    private void showScore() {
-        if (scores == null) return;
-        int j1 = 0;
-        String caption = "       -=* TOP SCORE *=-           ";
-        for (TextCharacter textCharacter : TextCharacter.fromString(caption, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
-            screen.setCharacter(left + (WIDTH * 2 - caption.length()) / 2 + 2 + j1++, top + 5, textCharacter);
-        }
-        int line = top + 6;
-        for (Score score1 : scores) {
-            String text = score1.getPosition() + ". " + score1.getName() + ".".repeat(30 - score1.getName().length()) + score1.getScore();
-            int j = 0;
-            for (TextCharacter textCharacter : TextCharacter.fromString(text, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
-                screen.setCharacter(left + 5 + j++, line, textCharacter);
-            }
         }
     }
 

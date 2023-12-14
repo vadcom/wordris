@@ -1,12 +1,11 @@
-import org.jetbrains.annotations.NotNull;
-
+// Author: Vadim Dubina
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Supplier;
 
 public class Block {
 
-    enum BlockType{ IType,LType, UType, TWO, ANGLE, FULL, CROSS }
+    enum BlockType{ IType,LType,LTypeMirror, UType, TWO, ANGLE, FULL, CROSS,WType }
     static Random rnd = new Random();
 
     /**
@@ -35,6 +34,13 @@ public class Block {
                 letters[1][0]=getaChar();
                 letters[2][0]=getaChar();
                 letters[0][1]=getaChar();
+            }
+            case LTypeMirror -> {
+                initBlock(3,2);
+                letters[0][1]=getaChar();
+                letters[1][1]=getaChar();
+                letters[2][1]=getaChar();
+                letters[0][0]=getaChar();
             }
             case FULL -> {
                 initBlock(2,2);
@@ -69,6 +75,14 @@ public class Block {
                 letters[1][1]=getaChar();
                 letters[1][2]=getaChar();
                 letters[2][1]=getaChar();
+            }
+            case WType -> {
+                initBlock(3,3);
+                letters[0][0]=getaChar();
+                letters[1][0]=getaChar();
+                letters[1][1]=getaChar();
+                letters[1][2]=getaChar();
+                letters[2][2]=getaChar();
             }
         }
     }
@@ -142,8 +156,6 @@ public class Block {
         return rotated;
     }
 
-
-    @NotNull
     private char[][] getReversed() {
         char[][] reversed=new char[getHeight()][getWidth()];
         for (int i = 0; i <getHeight(); i++) {

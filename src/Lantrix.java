@@ -1,21 +1,15 @@
 import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.swing.AWTTerminalFontConfiguration;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration;
-import org.jetbrains.annotations.NotNull;
+import link.sigma5.dreamscore.client.Score;
+import link.sigma5.dreamscore.client.ScoreClient;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -28,25 +22,23 @@ public class Lantrix implements PoleService {
     public static final int DOWN_DELAY_MS = 2000;
     private static final int DELAY = 50;
 
-    private static final String latinFontName = "SpaceMono-Bold.ttf";
-    private static final String rusFontName = "DejaVuSansMono.ttf";
-
     Screen screen;
     boolean doGame = true;
+    private String userName = "";
 
-    enum Lang {ENG, RUS}
+    public enum Lang {ENG, RUS}
 
-    enum BlockSet {BASE, EXT}
+    public enum BlockSet {BASE, EXT}
 
     static final int HEIGHT = 20;
     static final int WIDTH = 10;
-    private LangService langService;
-    private int minLetters;
-    private BlockSet blockSet;
+    private final LangService langService;
+    private final int minLetters;
+    private final BlockSet blockSet;
 
-    private List<Block.BlockType> blockList;
+    List<Score> scores;
 
-    enum State {Start, NewBlock, Game, Drop, Check, Fell, EndGame, Exit, BrightWord, DropLetters}
+    enum State {Start, NewBlock, Game, Drop, Check, Fell, EndGame, Exit, GetName, ShowScore, BrightWord, DropLetters}
 
     enum Event {
         onExit, createBlock, onGame, onEnd, onStepDown, onDropDown,
@@ -56,6 +48,8 @@ public class Lantrix implements PoleService {
         onDropLetter,
         onClockwise,
         onCounterClockwise,
+        pushScore,
+        onGetName
     }
 
     Block block;
@@ -71,47 +65,30 @@ public class Lantrix implements PoleService {
 
     char[][] cup;
 
-    public Lantrix(LangService langService, Lang lang, int minLetters, BlockSet blockSet) throws IOException, URISyntaxException, FontFormatException {
+    ScoreClient scoreClient;
+
+    public Lantrix(Screen screen, LangService langService, Lang lang, int minLetters, BlockSet blockSet) throws IOException, URISyntaxException, FontFormatException {
+        this.screen = screen;
         this.langService = langService;
         this.minLetters = minLetters;
         this.blockSet = blockSet;
-        String fontName = getFontFileName(lang);
-        URL urlFont = getClass().getClassLoader().getResource(fontName);
-        var fontBase = Font.createFont(Font.TRUETYPE_FONT, new File(urlFont.toURI()));
-        Font font = fontBase.deriveFont(16.0f);
-        Terminal terminal = new DefaultTerminalFactory()
-                .setInitialTerminalSize(new TerminalSize(80, 25))
-                .setTerminalEmulatorTitle("Wordrix")
-                .setTerminalEmulatorFontConfiguration(new SwingTerminalFontConfiguration(true, AWTTerminalFontConfiguration.BoldMode.EVERYTHING, font))
-                .createTerminal();
-        terminal.setCursorVisible(false);
-        screen = new TerminalScreen(terminal);
-        // screen.setCursorPosition(new TerminalPosition(1,1));
         state = State.Start;
         bottom = top + HEIGHT;
         right = left + WIDTH * 2 + 2;
+        scoreClient = new ScoreClient("wordrix", lang.toString() + "_" + minLetters + "_" + blockSet.toString());
     }
 
-    Block.BlockType[] base = {Block.BlockType.IType, Block.BlockType.LType, Block.BlockType.TWO, Block.BlockType.ANGLE};
-    Block.BlockType[] extended = {Block.BlockType.IType, Block.BlockType.LType, Block.BlockType.UType, Block.BlockType.TWO, Block.BlockType.ANGLE, Block.BlockType.FULL, Block.BlockType.CROSS};
+    Block.BlockType[] base = {Block.BlockType.IType, Block.BlockType.LType, Block.BlockType.LTypeMirror, Block.BlockType.TWO, Block.BlockType.ANGLE};
+    Block.BlockType[] extended = {Block.BlockType.IType, Block.BlockType.LType, Block.BlockType.UType, Block.BlockType.LTypeMirror, Block.BlockType.TWO, Block.BlockType.ANGLE, Block.BlockType.FULL, Block.BlockType.CROSS};
 
     private Block.BlockType[] getBlockList(BlockSet blockSet) {
-        return switch (blockSet){
+        return switch (blockSet) {
             case BASE -> base;
             case EXT -> extended;
         };
     }
 
-    @NotNull
-    private String getFontFileName(Lang lang) {
-        var fontName = switch (lang) {
-            case ENG -> latinFontName;
-            case RUS -> rusFontName;
-        };
-        return fontName;
-    }
-
-    public void onEvent(Event event) {
+    private void onEvent(Event event) {
         System.out.println("State:" + state.toString() + " Event " + event.toString());
         switch (state) {
 
@@ -144,6 +121,7 @@ public class Lantrix implements PoleService {
                 case onDropLetter -> State.DropLetters;
                 case onClockwise -> rotateClockwise();
                 case onCounterClockwise -> rotateCounterClockwise();
+                default -> state;
             };
             case BrightWord -> state = switch (event) {
                 case brightWord -> State.BrightWord;
@@ -154,10 +132,48 @@ public class Lantrix implements PoleService {
                 if (event == Event.onGame) state = State.Game;
             }
             case EndGame -> {
+                if (event == Event.onGetName) {
+                    userName = getName();
+                }
+                if (event == Event.pushScore) {
+                    try {
+                        scores = scoreClient.pushScore(userName, score);
+                        state = State.ShowScore;
+                    } catch (IOException | InterruptedException e) {
+                        state = State.Exit;
+                    }
+                }
+                if (event == Event.onExit) state = State.Exit;
+            }
+            case ShowScore -> {
                 if (event == Event.onExit) state = State.Exit;
             }
         }
         System.out.println("New state:" + state.toString());
+    }
+
+    private String getName() {
+        StringBuilder stringBuilder = new StringBuilder();
+        while (true) {
+            KeyStroke keyStroke = null;
+            try {
+                keyStroke = screen.pollInput();
+            } catch (IOException e) {
+                return "";
+            }
+            if (keyStroke != null) {
+                if (keyStroke.getKeyType() == KeyType.Enter) {
+                    return stringBuilder.toString();
+                }
+                if (keyStroke.getKeyType() == KeyType.Escape) {
+                    return "";
+                }
+                if (keyStroke.getKeyType() == KeyType.Character) {
+                    stringBuilder.append(keyStroke.getCharacter());
+                    screen.setCharacter(left + 1 + stringBuilder.length(), top + 5, TextCharacter.fromCharacter(keyStroke.getCharacter(), TextColor.ANSI.YELLOW, TextColor.ANSI.BLUE, SGR.BOLD)[0]);
+                }
+            }
+        }
     }
 
     private State rotateClockwise() {
@@ -265,7 +281,7 @@ public class Lantrix implements PoleService {
     }
 
 
-    private void process() throws IOException, InterruptedException {
+    public void process() throws IOException, InterruptedException {
         screen.startScreen();
         int delay = 50;
         int counter = 0;
@@ -299,8 +315,14 @@ public class Lantrix implements PoleService {
                     doGame = false;
                 }
                 case EndGame -> {
-                    ShowEndGame();
+                    showEndGame();
+                    if (userName.isEmpty()) {
+                        onEvent(Event.onGetName);
+                    } else {
+                        onEvent(Event.pushScore);
+                    }
                 }
+                case ShowScore -> showScore();
                 case BrightWord -> {
                     score += factorial(getLastWord().size());
                     brightWord(getLastWord());
@@ -327,13 +349,35 @@ public class Lantrix implements PoleService {
                 .reduce(1, (long x, long y) -> x * y);
     }
 
-    private void ShowEndGame() {
+    private void showEndGame() {
         int j = 0;
         String text = "-=* END GAME *=-";
         for (TextCharacter textCharacter : TextCharacter.fromString(text, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
             screen.setCharacter(left + (WIDTH * 2 - text.length()) / 2 + 2 + j++, top + 5, textCharacter);
         }
     }
+
+    private void showScore() {
+        if (scores == null) return;
+        int j1 = 0;
+        String caption = "       -=* TOP SCORE *=-           ";
+        for (TextCharacter textCharacter : TextCharacter.fromString(caption, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
+            screen.setCharacter(left + (WIDTH * 2 - caption.length()) / 2 + 2 + j1++, top + 5, textCharacter);
+        }
+        int line = top + 6;
+        for (Score score1 : scores) {
+            String text = score1.getPosition() + ". " + score1.getName() + ".".repeat(30 - score1.getName().length()) + score1.getScore();
+            int j = 0;
+            for (TextCharacter textCharacter : TextCharacter.fromString(text, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLUE, SGR.BOLD)) {
+                screen.setCharacter(left + 5 + j++, line, textCharacter);
+            }
+        }
+    }
+
+    String getDuplicate(char c, int count) {
+        return String.valueOf(c).repeat(Math.max(0, count));
+    }
+
 
     private void showPrize() {
         for (int i = 0; i < min(10, prize.size()); i++) {
@@ -438,25 +482,6 @@ public class Lantrix implements PoleService {
         for (int i = left; i <= right; i++) {
             screen.setCharacter(i, bottom, border);
         }
-    }
-
-    public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException, FontFormatException {
-        Lang lang = Lang.ENG;
-        if (args.length > 0) {
-            lang = switch (args[0].toUpperCase()) {
-                case "RUS" -> Lang.RUS;
-                default -> Lang.ENG;
-            };
-        }
-        int minLetters = 3;
-        if (args.length > 1) {
-            minLetters = Integer.parseInt(args[1]);
-        }
-        BlockSet bs=BlockSet.BASE;
-        if (args.length>2) {
-            bs= args[2].equalsIgnoreCase("EXT")?BlockSet.EXT:BlockSet.BASE;
-        }
-        new Lantrix(new LangService(lang), lang, minLetters,bs).process();
     }
 
 }

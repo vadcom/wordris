@@ -1,4 +1,3 @@
-import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -75,7 +74,6 @@ public class LangService {
         dictionary=bufferedReader.lines().map(String::toUpperCase).collect(Collectors.toSet());
     }
 
-    @NotNull
     private String getDictionaryFileName(Lantrix.Lang lang) {
         return switch (lang){
             case ENG -> "dictionary_en.lst";
@@ -105,7 +103,7 @@ public class LangService {
 
     int max=10;
     int [][] steps={{1,0},{-1,0},{0,1},{0,-1}};
-    private int checkLetter(int row, int col, @NotNull List<Letter> letters, int minLetters) {
+    private int checkLetter(int row, int col, List<Letter> letters, int minLetters) {
         int result=0;
         char letter = cup[row][col];
         if (letter==' ') return 0;

@@ -1,0 +1,32 @@
+text: WORDRIX
+type: submenu
+leave: exit
+items:
+  - text: Start
+    event: start
+  - text: Language
+    type: option
+    event: language
+    items:
+      - text: English
+        event: ENG
+      - text: Russian
+        event: RUS
+  - text: Block Set
+    type: option
+    event: blockSet
+    items:
+      - text: Basic
+        event: BASE
+      - text: Extended
+        event: EXT
+  - text: Min letters
+    type: value
+    event: minLetters
+    default: 3
+    from: 3
+    to: 5
+  - text: High scores
+    event: scores
+  - text: Exit
+    event: exit

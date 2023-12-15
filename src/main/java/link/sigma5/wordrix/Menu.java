@@ -1,3 +1,5 @@
+package link.sigma5.wordrix;
+
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextCharacter;
@@ -109,14 +111,8 @@ public class Menu implements MenuListener {
                         List<Score> scores = scoreClient.pushScore(userName, score);
                         showScore(scores);
                     }
-                } catch (IOException e) {
+                } catch (IOException | URISyntaxException | InterruptedException | FontFormatException e) {
                     e.printStackTrace();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (FontFormatException e) {
-                    throw new RuntimeException(e);
                 }
             }
             case "exit" -> exit = true;
@@ -165,33 +161,27 @@ public class Menu implements MenuListener {
         drawString(caption, (columns - caption.length()) / 2 , 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
         int line = 6;
         int x = (columns - 40) /2;
-        String name = "";
+        StringBuilder name = new StringBuilder();
         String prompt = "New player name: ";
-        try {
-            while (true) {
-                drawString(prompt + name+" ".repeat(50), x, line, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
-                screen.setCursorPosition(new TerminalPosition(x+prompt.length() + name.length(), line));
-                screen.refresh();
-                KeyStroke keyStroke = screen.readInput();
-                switch (keyStroke.getKeyType()) {
-                    case Escape -> {
-                        return userName;
-                    }
-                    case Enter -> {
-                        return name;
-                    }
-                    case Backspace -> {
-                        if (name.length() > 0) {
-                            name = name.substring(0, name.length() - 1);
-                        }
-                    }
-                    default -> {
-                        name += keyStroke.getCharacter();
+        while (true) {
+            drawString(prompt + name+" ".repeat(50), x, line, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
+            screen.setCursorPosition(new TerminalPosition(x+prompt.length() + name.length(), line));
+            screen.refresh();
+            KeyStroke keyStroke = screen.readInput();
+            switch (keyStroke.getKeyType()) {
+                case Escape -> {
+                    return userName;
+                }
+                case Enter -> {
+                    return name.toString();
+                }
+                case Backspace -> {
+                    if (!name.isEmpty()) {
+                        name = new StringBuilder(name.substring(0, name.length() - 1));
                     }
                 }
+                default -> name.append(keyStroke.getCharacter());
             }
-        } finally {
-            screen.setCursorPosition(new TerminalPosition(1, 1));
         }
     }
 

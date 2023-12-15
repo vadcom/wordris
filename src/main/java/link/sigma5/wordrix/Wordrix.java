@@ -1,3 +1,5 @@
+package link.sigma5.wordrix;
+
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
@@ -7,10 +9,9 @@ import com.googlecode.lanterna.terminal.swing.AWTTerminalFontConfiguration;
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.Objects;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -38,8 +39,7 @@ public class Wordrix {
 
     private Screen createScreen(Lantrix.Lang lang) throws FontFormatException, IOException, URISyntaxException {
         String fontName = getFontFileName(lang);
-        URL urlFont = getClass().getClassLoader().getResource(fontName);
-        var fontBase = Font.createFont(Font.TRUETYPE_FONT, new File(urlFont.toURI()));
+        var fontBase = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(fontName)));
         Font font = fontBase.deriveFont(16.0f);
         Terminal terminal = new DefaultTerminalFactory()
                 .setInitialTerminalSize(new TerminalSize(80, 25))

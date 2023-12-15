@@ -1,3 +1,5 @@
+package link.sigma5.wordrix;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

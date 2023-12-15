@@ -1,4 +1,4 @@
-// Author: Vadim Dubina
+package link.sigma5.wordrix;// Author: Vadim Dubina
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Supplier;

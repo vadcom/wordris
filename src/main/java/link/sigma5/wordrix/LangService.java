@@ -1,3 +1,4 @@
+package link.sigma5.wordrix;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

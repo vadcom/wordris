@@ -67,6 +67,7 @@ public class Menu implements MenuListener {
 
     private void showMenu() throws IOException {
         screen.clear();
+        hideCursor();
         String caption = menu.getCurrentLevel().getText();
         int cy = 5;
         int cx = (screen.getTerminalSize().getColumns() - caption.length()) / 2;
@@ -82,6 +83,11 @@ public class Menu implements MenuListener {
         });
         drawString("Player: "+userName, cx-2, 18, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
         screen.refresh();
+    }
+
+    private void hideCursor() {
+        drawString(" ", 1, 1, TextColor.ANSI.BLACK, TextColor.ANSI.BLACK);
+        screen.setCursorPosition(new TerminalPosition(1, 1));
     }
 
     private void drawString(String text, int x, int y, TextColor foregroundColor, TextColor backgroundColor, SGR... modifiers) {

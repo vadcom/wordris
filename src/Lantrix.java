@@ -1,4 +1,5 @@
 import com.googlecode.lanterna.SGR;
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
@@ -231,6 +232,7 @@ public class Lantrix implements PoleService {
         int counter = 0;
         while (doGame) {
             screen.clear();
+            hideCursor();
             drawCup();
             showPole();
             switch (state) {
@@ -396,5 +398,11 @@ public class Lantrix implements PoleService {
             screen.setCharacter(i, bottom, border);
         }
     }
+
+    private void hideCursor() {
+        screen.setCharacter(1, 1,TextCharacter.fromCharacter(' ', TextColor.ANSI.BLACK, TextColor.ANSI.BLACK)[0]);
+        screen.setCursorPosition(new TerminalPosition(1, 1));
+    }
+
 
 }

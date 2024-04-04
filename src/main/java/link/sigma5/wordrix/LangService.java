@@ -79,6 +79,7 @@ public class LangService {
         return switch (lang){
             case ENG -> "dictionary_en.lst";
             case RUS -> "dictionary_ru.lst";
+            default -> null;
         };
     }
 
@@ -86,6 +87,7 @@ public class LangService {
         return switch ((lang)){
             case ENG -> new LetterFilter('A','Z');
             case RUS -> new LetterFilter('А','Я');
+            default -> null;
         };
     }
 

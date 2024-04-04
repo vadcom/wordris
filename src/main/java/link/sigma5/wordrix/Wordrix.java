@@ -29,11 +29,14 @@ public class Wordrix {
         this.blockSet = blockSet;
     }
     private static final String latinFontName = "SpaceMono-Bold.ttf";
+//    private static final String latinFontName = "telegrama_raw.otf";
     private static final String rusFontName = "DejaVuSansMono.ttf";
     private String getFontFileName(Lantrix.Lang lang) {
+//        return rusFontName;
         return switch (lang) {
             case ENG -> latinFontName;
             case RUS -> rusFontName;
+            case QAD -> latinFontName;
         };
     }
 
@@ -58,6 +61,7 @@ public class Wordrix {
 
 
     public static void main(String[] args) throws IOException, URISyntaxException, FontFormatException, BackingStoreException {
+
         Lantrix.Lang lang = Lantrix.Lang.ENG;
         if (args.length > 0) {
             lang = switch (args[0].toUpperCase()) {

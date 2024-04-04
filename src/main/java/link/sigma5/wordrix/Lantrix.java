@@ -24,7 +24,7 @@ public class Lantrix implements PoleService {
 
     Screen screen;
     boolean doGame = true;
-    public enum Lang {ENG, RUS}
+    public enum Lang {ENG, RUS, QAD}
 
     public enum BlockSet {BASE, EXT}
 

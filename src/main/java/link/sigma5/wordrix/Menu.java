@@ -14,6 +14,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Random;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -27,6 +28,7 @@ public class Menu implements MenuListener {
 
     String userName;
     Preferences prefs = Preferences.userNodeForPackage(Menu.class);
+
     void getPrefs() {
         userName = prefs.get("userName", "John Doe");
     }
@@ -40,6 +42,7 @@ public class Menu implements MenuListener {
     }
 
     boolean exit = false;
+
     public void start() throws IOException, BackingStoreException {
         menu.init();
         screen.startScreen();
@@ -69,6 +72,7 @@ public class Menu implements MenuListener {
 
     private void showMenu() throws IOException {
         screen.clear();
+//        showBackground();
         hideCursor();
         String caption = menu.getCurrentLevel().getText();
         int cy = 5;
@@ -76,15 +80,44 @@ public class Menu implements MenuListener {
         drawString(caption, cx, cy, TextColor.ANSI.BLUE_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
         menu.drawMenu(level -> {
             int y = 8;
-            int x = cx-4;
+            int x = cx - 4;
             for (MenuItemView menuItemView : level.getItemsText()) {
                 String text = menuItemView.value().isEmpty() ? menuItemView.text() : menuItemView.text() + " : " + menuItemView.value();
                 drawString(text, x, y, menuItemView.active() ? TextColor.ANSI.MAGENTA : TextColor.ANSI.BLUE, TextColor.ANSI.BLACK, SGR.BOLD);
-                y ++;
+                y++;
             }
         });
-        drawString("Player: "+userName, cx-2, 18, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
+        drawString("Player: " + userName, cx - 2, 18, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
         screen.refresh();
+    }
+
+    Random random = new Random();
+    private void showBackground() {
+        int columns = screen.getTerminalSize().getColumns();
+        int rows = screen.getTerminalSize().getRows();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j <columns; j++) {
+                if (random.nextInt(100) > 90) {
+                    screen.setCharacter(j, i, new TextCharacter(' ' , TextColor.ANSI.WHITE, TextColor.ANSI.BLACK));
+//                    screen.setCharacter(j+1, i, new TextCharacter(' ' , TextColor.ANSI.WHITE, TextColor.ANSI.BLACK));
+                    continue;
+                }
+                screen.setCharacter(j, i, new TextCharacter(random.nextBoolean()?'\\':'/', TextColor.ANSI.BLUE, TextColor.ANSI.BLACK));
+/*
+                char a;
+                char b;
+                if (random.nextBoolean()) {
+                    a='\u14A7';
+                    b='\u14A5';
+                } else {
+                    a='\u14A3';
+                    b='\u14AA';
+                }
+                screen.setCharacter(j, i, new TextCharacter(a, TextColor.ANSI.BLUE, TextColor.ANSI.BLACK));
+                screen.setCharacter(j, i+1, new TextCharacter(b, TextColor.ANSI.BLUE, TextColor.ANSI.BLACK));
+*/
+            }
+        }
     }
 
     private void hideCursor() {
@@ -106,23 +139,22 @@ public class Menu implements MenuListener {
             case "start" -> {
                 try {
                     Long score = new Lantrix(screen, new LangService(lang), minLetters, blockSet).process();
-                    if (score !=0 ){
+                    if (score != 0) {
                         var scoreClient = new ScoreClient(APPLICATION_ID, getSectionId());
                         List<Score> scores = scoreClient.pushScore(userName, score);
                         showScore(scores);
                     }
                 } catch (IOException | URISyntaxException | InterruptedException | FontFormatException e) {
                     e.printStackTrace();
+                    showDisabledScore();
                 }
             }
             case "exit" -> exit = true;
-            case "language" -> {
-                lang = switch (menuEvent.param()) {
-                    case "ENG" -> Lantrix.Lang.ENG;
-                    case "RUS" -> Lantrix.Lang.RUS;
-                    default -> Lantrix.Lang.ENG;
-                };
-            }
+            case "language" -> lang = switch (menuEvent.param()) {
+                case "ENG" -> Lantrix.Lang.ENG;
+                case "RUS" -> Lantrix.Lang.RUS;
+                default -> Lantrix.Lang.ENG;
+            };
             case "minLetters" -> minLetters = Integer.parseInt(menuEvent.param());
             case "blockSet" -> {
                 blockSet = switch (menuEvent.param()) {
@@ -136,11 +168,8 @@ public class Menu implements MenuListener {
                     var scoreClient = new ScoreClient("wordrix", getSectionId());
                     List<Score> scores = scoreClient.pullScore(0, 10);
                     showScore(scores);
-
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                } catch (IOException | InterruptedException e) {
+                    showDisabledScore();
                 }
             }
             case "changeName" -> {
@@ -158,14 +187,14 @@ public class Menu implements MenuListener {
         screen.clear();
         String caption = "-=* ENTER YOUR NAME *=-";
         int columns = screen.getTerminalSize().getColumns();
-        drawString(caption, (columns - caption.length()) / 2 , 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
+        drawString(caption, (columns - caption.length()) / 2, 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
         int line = 6;
-        int x = (columns - 40) /2;
+        int x = (columns - 40) / 2;
         StringBuilder name = new StringBuilder();
         String prompt = "New player name: ";
         while (true) {
-            drawString(prompt + name+" ".repeat(50), x, line, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
-            screen.setCursorPosition(new TerminalPosition(x+prompt.length() + name.length(), line));
+            drawString(prompt + name + " ".repeat(50), x, line, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
+            screen.setCursorPosition(new TerminalPosition(x + prompt.length() + name.length(), line));
             screen.refresh();
             KeyStroke keyStroke = screen.readInput();
             switch (keyStroke.getKeyType()) {
@@ -191,21 +220,37 @@ public class Menu implements MenuListener {
 
     private void showScore(List<Score> scores) throws IOException {
         screen.clear();
+        hideCursor();
         String caption = "-=* TOP SCORE *=-";
         int columns = screen.getTerminalSize().getColumns();
-        drawString(caption, (columns - caption.length()) / 2 , 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
+        drawString(caption, (columns - caption.length()) / 2, 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
         int line = 6;
-        int x = (columns - 40) /2;
+        int x = (columns - 40) / 2;
         for (Score score : scores) {
             String name = score.getName().trim();
-            String text = score.getPosition() + "."+" ".repeat(3-score.getPosition().toString().length())
-                    + name + ".".repeat(30 - (name.length()+score.getScore().toString().length()))
+            String text = score.getPosition() + "." + " ".repeat(3 - score.getPosition().toString().length())
+                    + name + ".".repeat(30 - (name.length() + score.getScore().toString().length()))
                     + score.getScore();
-            boolean selected = score.getSelected()!=null?score.getSelected():false;
-            drawString(text, x, line++, TextColor.ANSI.GREEN, selected ?TextColor.ANSI.BLUE:TextColor.ANSI.BLACK, SGR.BOLD);
+            boolean selected = score.getSelected() != null ? score.getSelected() : false;
+            drawString(text, x, line++, TextColor.ANSI.GREEN, selected ? TextColor.ANSI.BLUE : TextColor.ANSI.BLACK, SGR.BOLD);
         }
         screen.refresh();
         screen.readInput();
     }
+
+    private void showDisabledScore(){
+        screen.clear();
+        hideCursor();
+        String caption = "-=* TOP SCORE UNAVAILABLE *=-";
+        int columns = screen.getTerminalSize().getColumns();
+        drawString(caption, (columns - caption.length()) / 2, 4, TextColor.ANSI.RED_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
+        try {
+            screen.refresh();
+            screen.readInput();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

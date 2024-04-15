@@ -32,7 +32,6 @@ public class Wordrix {
 //    private static final String latinFontName = "telegrama_raw.otf";
     private static final String rusFontName = "DejaVuSansMono.ttf";
     private String getFontFileName(Lantrix.Lang lang) {
-//        return rusFontName;
         return switch (lang) {
             case ENG -> latinFontName;
             case RUS -> rusFontName;
@@ -54,8 +53,9 @@ public class Wordrix {
     }
 
     public void start() throws IOException, URISyntaxException, FontFormatException, BackingStoreException {
-        var screen = createScreen(lang);
-        new Menu(screen, lang, minLetters, blockSet).start();
+        Menu menu = new Menu(lang, minLetters, blockSet);
+        var screen = createScreen(menu.getLang());
+        menu.start(screen);
     }
 
 

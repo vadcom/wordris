@@ -22,29 +22,36 @@ public class Menu implements MenuListener {
     public static final String APPLICATION_ID = "wordrix";
     private final DumbMenu menu = new DumbMenu("menu.yaml", this);
     Screen screen;
+
     Lantrix.Lang lang;
+    Lantrix.Lang originLang;
+
     int minLetters;
     Lantrix.BlockSet blockSet;
-
     String userName;
-    Preferences prefs = Preferences.userNodeForPackage(Menu.class);
 
+    Preferences prefs = Preferences.userNodeForPackage(Menu.class);
     void getPrefs() {
         userName = prefs.get("userName", "John Doe");
     }
 
-    public Menu(Screen screen, Lantrix.Lang lang, int minLetters, Lantrix.BlockSet blockSet) throws IOException {
-        this.screen = screen;
+    public Lantrix.Lang getLang() {
+        return lang;
+    }
+
+    public Menu(Lantrix.Lang lang, int minLetters, Lantrix.BlockSet blockSet) throws IOException {
         this.lang = lang;
         this.minLetters = minLetters;
         this.blockSet = blockSet;
+        menu.init();
         getPrefs();
+        originLang = getLang();
     }
 
     boolean exit = false;
 
-    public void start() throws IOException, BackingStoreException {
-        menu.init();
+    public void start(Screen screen) throws IOException, BackingStoreException {
+        this.screen = screen;
         screen.startScreen();
         while (!exit) {
             try {
@@ -88,7 +95,14 @@ public class Menu implements MenuListener {
             }
         });
         drawString("Player: " + userName, cx - 2, 18, TextColor.ANSI.GREEN, TextColor.ANSI.BLACK, SGR.BOLD);
+        if (haveToRestart()) {
+            drawCenterXString("You have to restart the game to apply Russian font", 20, TextColor.ANSI.RED, TextColor.ANSI.BLACK, SGR.BOLD);
+        }
         screen.refresh();
+    }
+
+    private boolean haveToRestart() {
+        return originLang != lang && lang == Lantrix.Lang.RUS;
     }
 
     Random random = new Random();
@@ -131,12 +145,21 @@ public class Menu implements MenuListener {
         }
     }
 
+    private void drawCenterXString(String text, int y, TextColor foregroundColor, TextColor backgroundColor, SGR... modifiers) {
+        int x = (screen.getTerminalSize().getColumns()-text.length()) / 2;
+        for (TextCharacter textCharacter : TextCharacter.fromString(text, foregroundColor, backgroundColor, modifiers)) {
+            screen.setCharacter(x++, y, textCharacter);
+        }
+    }
 
     @Override
     public void onEvent(MenuEvent menuEvent) {
         System.out.println(menuEvent);
         switch (menuEvent.event()) {
             case "start" -> {
+                if (haveToRestart()) {
+                    return;
+                }
                 try {
                     Long score = new Lantrix(screen, new LangService(lang), minLetters, blockSet).process();
                     if (score != 0) {

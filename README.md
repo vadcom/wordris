@@ -30,7 +30,7 @@ similar to how you would clear rows in Tetris by forming lines.
 
 ### Fastest way to play
 
-Download package from [releases](target/wordris-1.0.0-bin.zip), unpack and run the **run.bat** file.
+Download package from [releases](https://github.com/vadcom/wordris/releases), unpack and run the **run.bat** file.
 
 ### Building from source
 

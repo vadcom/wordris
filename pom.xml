@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>link.sigma5</groupId>
-    <artifactId>wordrix</artifactId>
+    <artifactId>wordris</artifactId>
     <version>1.0.0</version>
-    <name>wordrix</name>
-    <description>Wordrix</description>
+    <name>wordris</name>
+    <description>Wordris</description>
     <dependencies>
         <dependency>
             <groupId>com.googlecode.lanterna</groupId>
@@ -81,10 +81,28 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                             <!-- Specify your custom manifest entries here -->
-                            <mainClass>link.sigma5.wordrix.Wordrix</mainClass>
+                            <mainClass>link.sigma5.wordris.Wordrix</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/dep.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>create-archive</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

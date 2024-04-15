@@ -30,7 +30,8 @@ similar to how you would clear rows in Tetris by forming lines.
 
 ### Fastest way to play
 
-Download package from [releases](https://github.com/vadcom/wordris/releases), unpack and run the **run.bat** file.
+1. Install Java 8 or higher if you don't have it already from here: [Java JRE](https://www.java.com/en/download/)
+2. Download package from [releases](https://github.com/vadcom/wordris/releases), unpack and run the **run.bat** file.
 
 ### Building from source
 

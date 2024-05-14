@@ -2,6 +2,8 @@
 
 ## Description
 
+![Wordris](wx1.png)
+
 Wordris is a word game that combines elements of Tetris and Scrabble. 
 The game is played on a 10x20 grid, where the player must place falling letter blocks to 
 form words. The goal is to clear as many rows as possible by forming words, 

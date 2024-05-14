@@ -16,7 +16,7 @@ similar to how you would clear rows in Tetris by forming lines.
 3. Press the space key to make the block fall faster.
 4. Press the Up or Down arrow key to rotate the block.
 5. When the block lands, the computer will check if the letters form a valid word.
-6. If a valid word is formed, the row will be cleared and the player will earn points.
+6. If a valid word is formed, the letters of word will be cleared and the player will earn points.
 7. The game ends when the grid is full and there are no more valid moves.
 
 ## Features
@@ -25,7 +25,7 @@ similar to how you would clear rows in Tetris by forming lines.
 - Word validation: The computer checks if the letters form a valid word.
 - Scoring system: Players earn points for each valid word formed.
 - High score tracking: The game keeps track of the player's highest score.
-- Difficulty levels: Players can choose between easy, medium, and hard difficulty levels.
+- Difficulty levels: Players can choose between block set, minimum letters in the words, and languages.
 - Global Leaderboard: Players can view the top scores of other world players.
 
 ## Getting started

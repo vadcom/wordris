@@ -33,9 +33,8 @@ public class Wordrix {
     private static final String rusFontName = "DejaVuSansMono.ttf";
     private String getFontFileName(Lantrix.Lang lang) {
         return switch (lang) {
-            case ENG -> latinFontName;
             case RUS -> rusFontName;
-            case QAD -> latinFontName;
+            default -> latinFontName;
         };
     }
 
@@ -66,6 +65,7 @@ public class Wordrix {
         if (args.length > 0) {
             lang = switch (args[0].toUpperCase()) {
                 case "RUS" -> Lantrix.Lang.RUS;
+                case "BLOCK" -> Lantrix.Lang.BLOCK;
                 default -> Lantrix.Lang.ENG;
             };
         }

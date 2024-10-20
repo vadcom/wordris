@@ -22,7 +22,7 @@
         <dependency>
             <groupId>link.sigma5</groupId>
             <artifactId>dumb-menu</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

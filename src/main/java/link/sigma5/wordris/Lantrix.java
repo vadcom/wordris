@@ -24,7 +24,7 @@ public class Lantrix implements PoleService {
 
     Screen screen;
     boolean doGame = true;
-    public enum Lang {ENG, RUS, QAD}
+    public enum Lang {ENG, RUS, QAD, BLOCK}
 
     public enum BlockSet {BASE, EXT}
 
@@ -385,7 +385,7 @@ public class Lantrix implements PoleService {
     }
 
     private boolean addBlock() {
-        block = Block.createBlock(langService::getNormalizedLetter, getBlockList(blockSet));
+        block = Block.createBlock(langService::getLetter, getBlockList(blockSet));
         block.setPosition(WIDTH / 2 - block.getWidth() / 2, 0);
         return isPossiblePosition(block.getBx(), block.getBy(), block.getLetters());
     }

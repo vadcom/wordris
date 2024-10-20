@@ -176,6 +176,7 @@ public class Menu implements MenuListener {
             case "language" -> lang = switch (menuEvent.param()) {
                 case "ENG" -> Lantrix.Lang.ENG;
                 case "RUS" -> Lantrix.Lang.RUS;
+                case "BLOCK" -> Lantrix.Lang.BLOCK;
                 default -> Lantrix.Lang.ENG;
             };
             case "minLetters" -> minLetters = Integer.parseInt(menuEvent.param());

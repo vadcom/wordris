@@ -20,7 +20,7 @@ import java.util.prefs.Preferences;
 
 public class Menu implements MenuListener {
     public static final String APPLICATION_ID = "wordrix";
-    private final DumbMenu menu = new DumbMenu("menu.yaml", this);
+    private final DumbMenu dumbMenu = new DumbMenu("menu.yaml", this);
     Screen screen;
 
     Lantrix.Lang lang;
@@ -43,7 +43,7 @@ public class Menu implements MenuListener {
         this.lang = lang;
         this.minLetters = minLetters;
         this.blockSet = blockSet;
-        menu.init();
+        dumbMenu.init();
         getPrefs();
         originLang = getLang();
     }
@@ -68,12 +68,12 @@ public class Menu implements MenuListener {
     private void processInput() throws IOException {
         KeyStroke keyStroke = screen.readInput();
         switch (keyStroke.getKeyType()) {
-            case ArrowUp -> menu.performAction(MenuAction.Previous);
-            case ArrowDown -> menu.performAction(MenuAction.Next);
-            case ArrowLeft -> menu.performAction(MenuAction.ScrollPrevious);
-            case ArrowRight -> menu.performAction(MenuAction.ScrollNext);
-            case Enter -> menu.performAction(MenuAction.Enter);
-            case Escape -> menu.performAction(MenuAction.Back);
+            case ArrowUp -> dumbMenu.performAction(MenuAction.Previous);
+            case ArrowDown -> dumbMenu.performAction(MenuAction.Next);
+            case ArrowLeft -> dumbMenu.performAction(MenuAction.ScrollPrevious);
+            case ArrowRight -> dumbMenu.performAction(MenuAction.ScrollNext);
+            case Enter -> dumbMenu.performAction(MenuAction.Enter);
+            case Escape -> dumbMenu.performAction(MenuAction.Back);
         }
     }
 
@@ -81,11 +81,11 @@ public class Menu implements MenuListener {
         screen.clear();
 //        showBackground();
         hideCursor();
-        String caption = menu.getCurrentLevel().getText();
+        String caption = dumbMenu.getCurrentLevel().getText();
         int cy = 5;
         int cx = (screen.getTerminalSize().getColumns() - caption.length()) / 2;
         drawString(caption, cx, cy, TextColor.ANSI.BLUE_BRIGHT, TextColor.ANSI.BLACK, SGR.BOLD);
-        menu.drawMenu(level -> {
+        dumbMenu.drawMenu(level -> {
             int y = 8;
             int x = cx - 4;
             for (MenuItemView menuItemView : level.getItemsText()) {
@@ -102,7 +102,7 @@ public class Menu implements MenuListener {
     }
 
     private boolean haveToRestart() {
-        return originLang != lang && lang == Lantrix.Lang.RUS;
+        return originLang != lang && lang == Lantrix.Lang.RUS && Wordrix.isNeedToRestartForRus();
     }
 
     Random random = new Random();

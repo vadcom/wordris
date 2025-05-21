@@ -28,9 +28,8 @@ public class Wordrix {
         this.minLetters = minLetters;
         this.blockSet = blockSet;
     }
-    private static final String latinFontName = "SpaceMono-Bold.ttf";
-//    private static final String latinFontName = "telegrama_raw.otf";
-    private static final String rusFontName = "DejaVuSansMono.ttf";
+    private static final String latinFontName = "JetBrainsMono-Bold.ttf";
+    private static final String rusFontName = "JetBrainsMono-Bold.ttf";
     private String getFontFileName(Lantrix.Lang lang) {
         return switch (lang) {
             case RUS -> rusFontName;
@@ -38,10 +37,14 @@ public class Wordrix {
         };
     }
 
+    public static boolean isNeedToRestartForRus() {
+        return !rusFontName.equals(latinFontName);
+    }
+
     private Screen createScreen(Lantrix.Lang lang) throws FontFormatException, IOException, URISyntaxException {
         String fontName = getFontFileName(lang);
         var fontBase = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(fontName)));
-        Font font = fontBase.deriveFont(16.0f);
+        Font font = fontBase.deriveFont(22.0f);
         Terminal terminal = new DefaultTerminalFactory()
                 .setInitialTerminalSize(new TerminalSize(80, 25))
                 .setTerminalEmulatorTitle("Wordrix")

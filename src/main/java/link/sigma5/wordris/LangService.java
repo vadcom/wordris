@@ -112,7 +112,7 @@ public class LangService {
 
     private String getDictionaryFileName(Lantrix.Lang lang) {
         return switch (lang) {
-            case ENG -> "dictionary_en.lst";
+            case ENG -> "5000_en.lst";
             case RUS -> "dictionary_ru.lst";
             default -> null;
         };

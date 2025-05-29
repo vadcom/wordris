@@ -163,8 +163,8 @@ public class Menu implements MenuListener {
                 try {
                     Long score = new Lantrix(screen, new LangService(lang), minLetters, blockSet).process();
                     if (score != 0) {
-                        var scoreClient = new ScoreClient(APPLICATION_ID, getSectionId());
-                        List<Score> scores = scoreClient.pushScore(userName, score);
+                        var scoreClient = new ScoreClient(APPLICATION_ID, "");
+                        List<Score> scores = scoreClient.pushScore(getSectionId(),false,userName, score);
                         showScore(scores);
                     }
                 } catch (IOException | URISyntaxException | InterruptedException | FontFormatException e) {
@@ -189,8 +189,8 @@ public class Menu implements MenuListener {
             }
             case "scores" -> {
                 try {
-                    var scoreClient = new ScoreClient("wordrix", getSectionId());
-                    List<Score> scores = scoreClient.pullScore(0, 10);
+                    var scoreClient = new ScoreClient("wordrix", "");
+                    List<Score> scores = scoreClient.pullScore(getSectionId(),false, 0, 10);
                     showScore(scores);
                 } catch (IOException | InterruptedException e) {
                     showDisabledScore();
